@@ -16,7 +16,7 @@
 
     # 2. Download and install the database engine
     - name: install mongodb server
-      ansible.builtin.dnf 
+      ansible.builtin.dnf
         name: mongodb-org
         state: present    # Idempotent: Only installs if it's not already there
 
