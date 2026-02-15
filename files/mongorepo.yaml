@@ -1,0 +1,6 @@
+[mongodb-org-4.4]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org
