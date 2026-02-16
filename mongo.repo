@@ -1,7 +1,15 @@
-[mongodb-org-6.0]
-name=MongoDB Repository
-baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/6.0/x86_64/
-gpgcheck=1
-enabled=1
-gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc
+- name: Add MongoDB 6.0 repo
+  ansible.builtin.copy:
+    dest: /etc/yum.repos.d/mongodb.repo
+    content: |
+      [mongodb-org-6.0]
+      name=MongoDB Repository
+      baseurl=https://repo.mongodb.org/yum/redhat/8/mongodb-org/6.0/x86_64/
+      gpgcheck=1
+      enabled=1
+      gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc
 
+- name: Install MongoDB
+  ansible.builtin.dnf:
+    name: mongodb-org
+    state: present
