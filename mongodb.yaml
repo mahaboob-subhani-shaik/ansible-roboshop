@@ -1,19 +1,45 @@
-- name: Add MongoDB 6.0 repo
-  ansible.builtin.copy:
-    dest: /etc/yum.repos.d/mongodb.repo
-    content: |
-      [mongodb-org-6.0]
-      name=MongoDB Repository
-      baseurl=https://repo.mongodb.org/yum/redhat/9/mongodb-org/6.0/x86_64/
-      gpgcheck=1
-      enabled=1
-      gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc
+---
+# ==============================================================================
+# PLAY: Configure MongoDB Database
+# Purpose: Installs and starts the MongoDB service for the RoboShop project.
+# ==============================================================================
+- name: mongodb configure
+  hosts: mongodb          # Targets ONLY the servers listed under [mongodb] in inventory.ini
+  become: yes             # Elevates privileges to 'root' (sudo) required for installations
+  
+  tasks:
+    # 1. Provide the Linux package manager with the location of the MongoDB software
+    - name: copy mongo repo
+      ansible.builtin.copy:
+        src: mongo.repo   # A local file on your control node (must exist in the same folder!)
+        dest: /etc/yum.repos.d/mongo.repo  # The standard Linux directory for package sources
 
-- name: Clean dnf cache
-  ansible.builtin.command: dnf clean all
-  changed_when: false
+    # 2. Download and install the database engine
+    - name: install mongodb server
+      ansible.builtin.dnf:
+        name: mongodb-org
+        state: present    # Idempotent: Only installs if it's not already there
 
-- name: Install MongoDB
-  ansible.builtin.dnf:
-    name: mongodb-org
-    state: present
+    # 3. Modify the configuration to allow incoming traffic from our backend apps
+    - name: allow remote connections
+      ansible.builtin.replace:
+        path: /etc/mongod.conf    # The main configuration file
+        regexp: '127.0.0.1'       # Find the default local-only IP
+        replace: '0.0.0.0'        # Replace it with the universal 'listen to all' IP
+
+    # 4. Turn the database on and ensure it survives a server reboot
+    - name: start and enable mongodb
+      ansible.builtin.service:
+        name: mongod
+        enabled: yes      # Configures auto-start on system boot
+        state: started    # Starts the service right now
+
+    # ==========================================================================
+    # HANDLER PLACEHOLDER: 
+    # This is commented out because restarting the DB forcefully every time 
+    # is bad practice. We will use proper Ansible Handlers for this later.
+    # ==========================================================================
+    # - name: restart mongodb
+    #   ansible.builtin.service:
+    #     name: mongod
+    #     state: restarted
